@@ -15,7 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:smoke": "npm run build && node dist/index.js --version",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run lint && npm test"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0"

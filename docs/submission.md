@@ -17,8 +17,10 @@ Gemini Chat CLI is a lightweight command-line interface that connects to Google'
 - **TypeScript** for type-safe development with ES2022/Node16 module resolution
 - **@google/generative-ai SDK** for Gemini API integration with streaming support
 - **Node.js readline** for the interactive terminal interface
-- **Vitest** for unit testing (config, client, message formatting)
-- Environment-based configuration (GEMINI_API_KEY, GEMINI_MODEL, GEMINI_MAX_HISTORY)
+- **Vitest** for unit testing — 40 tests covering config validation, streaming, systemInstruction wiring, error handling, and CLI flags
+- **GitHub Actions CI** with Node 18/20/22 matrix, coverage reporting, and smoke tests
+- **npm-ready package** with global `gemini-chat` bin entry, TypeScript declarations, and `files` whitelist
+- Environment-based configuration (GEMINI_API_KEY, GEMINI_MODEL, GEMINI_MAX_HISTORY, GEMINI_SYSTEM_PROMPT)
 
 ## Challenges We Ran Into
 
@@ -30,7 +32,8 @@ Gemini Chat CLI is a lightweight command-line interface that connects to Google'
 
 - Clean separation of concerns: config, API client, and CLI entry point are fully decoupled
 - Streaming responses render character-by-character in the terminal for a natural feel
-- Full test coverage of core modules without mocking the Gemini SDK directly
+- Full test coverage of core modules with SDK mocking — 40 tests, zero live API calls needed
+- CI pipeline with 3-node matrix, coverage reporting, and automated smoke test
 - Zero external runtime dependencies beyond the official Google AI SDK
 
 ## What We Learned
