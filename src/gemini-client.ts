@@ -26,12 +26,14 @@ export class GeminiClient {
   private genAI: GoogleGenerativeAI;
   private model: string;
   private maxHistoryTurns: number;
+  private systemInstruction?: string;
   private history: ChatMessage[] = [];
 
   constructor(config: AppConfig) {
     this.genAI = new GoogleGenerativeAI(config.apiKey);
     this.model = config.model;
     this.maxHistoryTurns = config.maxHistoryTurns;
+    this.systemInstruction = config.systemInstruction;
   }
 
   getHistory(): ChatMessage[] {
@@ -56,8 +58,15 @@ export class GeminiClient {
     }));
   }
 
+  private getModelParams(): { model: string; systemInstruction?: string } {
+    return {
+      model: this.model,
+      ...(this.systemInstruction ? { systemInstruction: this.systemInstruction } : {}),
+    };
+  }
+
   async sendMessage(prompt: string): Promise<ChatResponse> {
-    const generativeModel = this.genAI.getGenerativeModel({ model: this.model });
+    const generativeModel = this.genAI.getGenerativeModel(this.getModelParams());
     const chat = generativeModel.startChat({
       history: this.toGeminiHistory(),
     });
@@ -77,7 +86,7 @@ export class GeminiClient {
   }
 
   async *streamMessage(prompt: string): AsyncGenerator<StreamChunk> {
-    const generativeModel = this.genAI.getGenerativeModel({ model: this.model });
+    const generativeModel = this.genAI.getGenerativeModel(this.getModelParams());
     const chat = generativeModel.startChat({
       history: this.toGeminiHistory(),
     });

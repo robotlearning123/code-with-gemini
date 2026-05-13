@@ -33,6 +33,27 @@ describe("loadConfig", () => {
     });
     expect(config.maxHistoryTurns).toBe(5);
   });
+
+  it("includes systemInstruction when GEMINI_SYSTEM_PROMPT is set", () => {
+    const config = loadConfig({
+      GEMINI_API_KEY: "test-key",
+      GEMINI_SYSTEM_PROMPT: "You are a concise coding assistant.",
+    });
+    expect(config.systemInstruction).toBe("You are a concise coding assistant.");
+  });
+
+  it("omits systemInstruction when GEMINI_SYSTEM_PROMPT is not set", () => {
+    const config = loadConfig({ GEMINI_API_KEY: "test-key" });
+    expect(config.systemInstruction).toBeUndefined();
+  });
+
+  it("omits systemInstruction when GEMINI_SYSTEM_PROMPT is whitespace-only", () => {
+    const config = loadConfig({
+      GEMINI_API_KEY: "test-key",
+      GEMINI_SYSTEM_PROMPT: "   ",
+    });
+    expect(config.systemInstruction).toBeUndefined();
+  });
 });
 
 describe("validateConfig", () => {
