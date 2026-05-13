@@ -21,10 +21,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - README with architecture diagram and usage guide
 - Devpost submission writeup (docs/submission.md)
 - Demo walkthrough (docs/demo.md)
+- Global CLI bin entry (`gemini-chat`) via `dist/cli.js`
+- Test suite expanded to 38 tests covering streaming, systemInstruction, error handling, and CLI flags
+- MIT LICENSE
+- `.npmignore` and `files` field for clean npm publishes
+- `@vitest/coverage-v8` for CI coverage reports
+- `.editorconfig` for consistent formatting
+- Smoke test (`npm run test:smoke`) for CLI --version
+- `validateConfig()` wired into `loadConfig()` for NaN and range protection
 
 ### Changed
-- README updated to document CLI flags and system prompt features
-
-### Infrastructure
-- GitHub Actions CI on push to master and pull requests
-- Vitest test framework with SDK mocking
+- README updated to document CLI flags, system prompt, and global install
+- `index.ts` module-level `main().catch()` moved to `cli.ts` bin entry
+- CI workflow now includes coverage report and smoke test steps
+- `package.json` added `bin`, `types`, and `files` fields
