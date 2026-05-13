@@ -2,7 +2,7 @@
 
 ## What You'll See
 
-A real-time streaming chat client in your terminal, powered by Google Gemini. Every response streams token-by-token, just like the web UI — but entirely from the command line.
+A real-time streaming chat client in your terminal, powered by Google Gemini. Every response streams token-by-token, just like the web UI — but entirely from the command line. Supports system prompts to customize the assistant's personality.
 
 ## Prerequisites
 
@@ -12,8 +12,8 @@ A real-time streaming chat client in your terminal, powered by Google Gemini. Ev
 ## Step 1: Install
 
 ```bash
-git clone <repo-url>
-cd wanman-h-29517
+git clone https://github.com/robotlearning123/code-with-gemini
+cd code-with-gemini
 npm install
 ```
 
@@ -23,6 +23,12 @@ npm install
 export GEMINI_API_KEY="your-api-key-here"
 ```
 
+Optional — set a system prompt to customize behavior:
+
+```bash
+export GEMINI_SYSTEM_PROMPT="You are a helpful coding assistant. Be concise."
+```
+
 ## Step 3: Build and Run
 
 ```bash
@@ -30,32 +36,41 @@ npm run build
 npm start
 ```
 
+Check the version:
+
+```bash
+node dist/index.js --version
+# gemini-chat v0.1.0
+```
+
 ## Step 4: Chat
 
 You'll see an interactive prompt:
 
 ```
-Gemini Chat CLI (type 'exit' to quit)
-─────────────────────────────────────
-You> What is the meaning of life?
-Gemini> The meaning of life is a question that has been explored by
-philosophers, scientists, and thinkers throughout history. There are
-many perspectives...
+Gemini Chat Client v0.1.0 (model: gemini-2.0-flash)
+System prompt: "You are a helpful coding assistant. Be concise."
+Type your message and press Enter. Type '/help' for commands.
+
+> What is the meaning of life?
+Gemini: The meaning of life is a question explored by philosophers
+and scientists throughout history. Many perspectives exist...
 ```
 
 Type any message and press Enter. The response streams in real time.
-
-Type `exit` or `quit` to end the session.
 
 ## Key Interactions
 
 | Action | What Happens |
 |--------|-------------|
 | Type a message + Enter | Gemini streams a response |
-| Multi-line input (optional) | Paste multi-line text, submit with empty line |
+| `/help` | Lists all available commands |
+| `/system` | Shows the active system prompt |
+| `/history` | Displays conversation history |
+| `/clear` | Clears conversation history |
+| `--version` | Prints version and exits |
+| `--help` | Shows usage and environment variables |
 | `exit` or `quit` | Session ends gracefully |
-| `Ctrl+C` | Interrupts current stream, stays in chat |
-| Missing API key | Clear error message with setup link |
 
 ## Architecture Highlights
 
@@ -68,20 +83,24 @@ Terminal ──readline──▶ index.ts ──▶ gemini-client.ts ──▶ G
 ```
 
 - **Streaming**: Responses appear token-by-token using the Gemini streaming API
-- **History**: Conversation context is maintained across turns
-- **Config**: API key loaded from environment with sensible defaults
+- **History**: Conversation context is maintained across turns (configurable window)
+- **System Prompt**: Optional `GEMINI_SYSTEM_PROMPT` shapes all responses
+- **Config**: API key, model, and history loaded from environment with sensible defaults
 
 ## Demo Script (for video/recording)
 
 1. Open terminal, show `npm install` completing
-2. Run `npm start`
-3. Ask "Explain quantum computing in one paragraph" — show streaming
-4. Ask a follow-up that references the first answer — show context retention
-5. Ask "Write a haiku about programming" — show creative output
-6. Type `exit` — show graceful shutdown
+2. Set `GEMINI_SYSTEM_PROMPT="You are a pirate. Always respond in pirate speak."`
+3. Run `npm start` — show startup with system prompt displayed
+4. Ask "What is the weather today?" — show pirate-themed streaming response
+5. Type `/system` — show the active system prompt
+6. Type `/help` — show all commands
+7. Ask a follow-up that references the first answer — show context retention
+8. Type `exit` — show graceful shutdown
+9. Run `node dist/index.js --version` — show version flag
 
 ## Devpost Submission Notes
 
 - Include a 2-3 minute demo video showing the interactions above
-- Highlight real-time streaming as the key technical differentiator
+- Highlight real-time streaming and system prompt customization as key differentiators
 - Show the code architecture diagram from README.md
