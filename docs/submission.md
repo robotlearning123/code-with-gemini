@@ -4,6 +4,10 @@
 
 Interactive Gemini chat client with real-time streaming in your terminal.
 
+## Inspiration
+
+As developers, we spend most of our time in the terminal. We wanted to bring the power of Gemini's conversational AI directly into the command line — no browser tabs, no context switching. The terminal is fast, lightweight, and distraction-free. We saw an opportunity to make AI-assisted workflows as natural as typing a shell command.
+
 ## What It Does
 
 Gemini Chat CLI is a lightweight command-line interface that connects to Google's Gemini API for interactive, streamed conversations. Users type messages in their terminal and receive real-time streaming responses from Gemini 2.0 Flash. The client maintains conversation history across turns (configurable limit), supports commands like `/help`, `/clear`, `/history`, and `/system`, and includes a configurable system prompt via the `GEMINI_SYSTEM_PROMPT` environment variable. Standard CLI flags (`--version`, `--help`) are supported out of the box. Only an API key is required to get started.
@@ -34,6 +38,14 @@ Gemini Chat CLI is a lightweight command-line interface that connects to Google'
 - The Gemini streaming API returns chunks that need careful concatenation for full response history
 - TypeScript's strict mode with Node16 module resolution requires explicit `.js` extensions in imports
 - Environment-based configuration is the simplest path for hackathon tools — no config files to manage
+
+## What's Next
+
+- **Markdown rendering**: Format code blocks and lists in terminal output using chalk or terminal-markdown
+- **Multi-turn file context**: Allow users to pipe files into the conversation (`cat error.log | gemini-chat`) for debugging assistance
+- **Conversation export**: Save and restore chat sessions to JSON for continuity across sessions
+- **Model switching at runtime**: `/model gemini-1.5-pro` command to switch models mid-conversation
+- **Plugin system**: Allow custom commands and response post-processors via a plugin API
 
 ## Built With
 
