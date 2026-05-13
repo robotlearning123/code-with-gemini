@@ -4,8 +4,11 @@
   "description": "Interactive Gemini chat client — Code With Gemini hackathon submission",
   "type": "module",
   "main": "dist/index.js",
+  "bin": {
+    "gemini-chat": "./dist/cli.js"
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"const f='dist/cli.js';const c=require('fs').readFileSync(f,'utf8');if(!c.startsWith('#!'))require('fs').writeFileSync(f,'#!/usr/bin/env node\\n'+c)\"",
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",

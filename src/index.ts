@@ -131,8 +131,3 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
     rl.prompt();
   }
 }
-
-main().catch((err) => {
-  console.error("Fatal:", err);
-  process.exit(1);
-});
