@@ -26,19 +26,27 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
 
   const systemInstruction = env.GEMINI_SYSTEM_PROMPT?.trim();
 
-  return {
+  const config: AppConfig = {
     apiKey,
     model: env.GEMINI_MODEL?.trim() || DEFAULT_MODEL,
     maxHistoryTurns: parseInt(env.GEMINI_MAX_HISTORY || String(DEFAULT_MAX_HISTORY), 10),
     ...(systemInstruction ? { systemInstruction } : {}),
   };
+
+  validateConfig(config);
+  return config;
 }
 
 export function validateConfig(config: Partial<AppConfig>): asserts config is AppConfig {
   if (!config.apiKey || config.apiKey.trim().length === 0) {
     throw new ConfigError("apiKey must be a non-empty string");
   }
-  if (config.maxHistoryTurns !== undefined && config.maxHistoryTurns < 1) {
-    throw new ConfigError("maxHistoryTurns must be >= 1");
+  if (config.maxHistoryTurns !== undefined) {
+    if (Number.isNaN(config.maxHistoryTurns)) {
+      throw new ConfigError("maxHistoryTurns must be a valid number");
+    }
+    if (config.maxHistoryTurns < 1) {
+      throw new ConfigError("maxHistoryTurns must be >= 1");
+    }
   }
 }

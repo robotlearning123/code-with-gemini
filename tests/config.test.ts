@@ -74,4 +74,24 @@ describe("validateConfig", () => {
       validateConfig({ apiKey: "valid", model: "gemini-2.0-flash", maxHistoryTurns: 0 })
     ).toThrow(ConfigError);
   });
+
+  it("throws for NaN maxHistoryTurns", () => {
+    expect(() =>
+      validateConfig({ apiKey: "valid", model: "gemini-2.0-flash", maxHistoryTurns: NaN })
+    ).toThrow("must be a valid number");
+  });
+});
+
+describe("loadConfig validation", () => {
+  it("throws ConfigError for non-numeric GEMINI_MAX_HISTORY", () => {
+    expect(() =>
+      loadConfig({ GEMINI_API_KEY: "test-key", GEMINI_MAX_HISTORY: "abc" })
+    ).toThrow(ConfigError);
+  });
+
+  it("throws ConfigError for GEMINI_MAX_HISTORY of zero", () => {
+    expect(() =>
+      loadConfig({ GEMINI_API_KEY: "test-key", GEMINI_MAX_HISTORY: "0" })
+    ).toThrow(ConfigError);
+  });
 });
