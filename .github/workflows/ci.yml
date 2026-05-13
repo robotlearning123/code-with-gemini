@@ -26,3 +26,6 @@ jobs:
       - name: Coverage report
         if: matrix.node-version == 22
         run: npx vitest run --coverage
+      - name: Smoke test (CLI --version)
+        if: matrix.node-version == 22
+        run: node dist/index.js --version
