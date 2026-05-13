@@ -1,0 +1,14 @@
+# Tests and dev files
+tests/
+vitest.config.ts
+.github/
+.wanman/
+
+# Source (dist is the published output)
+src/
+
+# Dev files
+*.tsbuildinfo
+tsconfig.json
+HACKATHON.md
+.wanman-agents-custom.json
