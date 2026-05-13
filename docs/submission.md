@@ -1,0 +1,49 @@
+# Devpost Submission Writeup — Gemini Chat CLI
+
+## Project Tagline
+
+Interactive Gemini chat client with real-time streaming in your terminal.
+
+## What It Does
+
+Gemini Chat CLI is a lightweight command-line interface that connects to Google's Gemini API for interactive, streamed conversations. Users type messages in their terminal and receive real-time streaming responses from Gemini 2.0 Flash. The client maintains conversation history across turns (configurable limit), supports commands like `/clear` and `/history`, and requires only an API key to get started.
+
+## How We Built It
+
+- **TypeScript** for type-safe development with ES2022/Node16 module resolution
+- **@google/generative-ai SDK** for Gemini API integration with streaming support
+- **Node.js readline** for the interactive terminal interface
+- **Vitest** for unit testing (config, client, message formatting)
+- Environment-based configuration (GEMINI_API_KEY, GEMINI_MODEL, GEMINI_MAX_HISTORY)
+
+## Challenges We Ran Into
+
+- Designing a clean streaming abstraction that handles partial chunks, error recovery, and history management simultaneously
+- Managing chat history windowing (trimming oldest turns while preserving conversation coherence)
+- Building a testable architecture around an external API without requiring live API calls in unit tests
+
+## Accomplishments That We're Proud Of
+
+- Clean separation of concerns: config, API client, and CLI entry point are fully decoupled
+- Streaming responses render character-by-character in the terminal for a natural feel
+- Full test coverage of core modules without mocking the Gemini SDK directly
+- Zero external runtime dependencies beyond the official Google AI SDK
+
+## What We Learned
+
+- The Gemini streaming API returns chunks that need careful concatenation for full response history
+- TypeScript's strict mode with Node16 module resolution requires explicit `.js` extensions in imports
+- Environment-based configuration is the simplest path for hackathon tools — no config files to manage
+
+## Built With
+
+- [x] TypeScript
+- [x] Google Gemini API
+- [x] Node.js
+- [x] @google/generative-ai SDK
+- [x] Vitest
+
+## Links
+
+- **Source code**: https://github.com/robotlearning123/code-with-gemini
+- **Hackathon**: [Code With Gemini on Devpost](https://code-with-gemini.devpost.com/)
