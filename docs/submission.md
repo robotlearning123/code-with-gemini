@@ -6,7 +6,7 @@ Interactive Gemini chat client with real-time streaming in your terminal.
 
 ## What It Does
 
-Gemini Chat CLI is a lightweight command-line interface that connects to Google's Gemini API for interactive, streamed conversations. Users type messages in their terminal and receive real-time streaming responses from Gemini 2.0 Flash. The client maintains conversation history across turns (configurable limit), supports commands like `/clear` and `/history`, and requires only an API key to get started.
+Gemini Chat CLI is a lightweight command-line interface that connects to Google's Gemini API for interactive, streamed conversations. Users type messages in their terminal and receive real-time streaming responses from Gemini 2.0 Flash. The client maintains conversation history across turns (configurable limit), supports commands like `/help`, `/clear`, `/history`, and `/system`, and includes a configurable system prompt via the `GEMINI_SYSTEM_PROMPT` environment variable. Standard CLI flags (`--version`, `--help`) are supported out of the box. Only an API key is required to get started.
 
 ## How We Built It
 
