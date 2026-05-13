@@ -45,11 +45,18 @@ npm run build
 npm start
 ```
 
+Or install globally:
+
+```bash
+npm install -g .
+gemini-chat
+```
+
 Command-line flags:
 
 ```bash
-node dist/index.js --version    # Print version
-node dist/index.js --help       # Show usage and env vars
+gemini-chat --version    # Print version
+gemini-chat --help       # Show usage and env vars
 ```
 
 ### Interactive Commands
@@ -89,10 +96,12 @@ All configuration is via environment variables:
 ```
 .
 ├── src/
-│   ├── index.ts          # Entry point, interactive chat loop
+│   ├── cli.ts            # CLI bin entry (shebang)
+│   ├── index.ts          # Chat loop, CLI flags
 │   ├── gemini-client.ts  # Gemini API wrapper (streaming + history)
 │   └── config.ts         # Environment configuration
-├── tests/                # 21 passing tests (Vitest)
+├── tests/                # Vitest unit tests
+├── CHANGELOG.md          # Release history
 ├── docs/
 │   ├── demo.md           # Demo script / walkthrough
 │   └── submission.md     # Devpost submission writeup
