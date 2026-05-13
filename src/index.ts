@@ -15,6 +15,9 @@ export async function main(): Promise<void> {
   }
 
   console.log(`Gemini Chat Client (model: ${config.model})`);
+  if (config.systemInstruction) {
+    console.log(`System prompt: "${config.systemInstruction}"`);
+  }
   console.log("Type your message and press Enter. Type 'exit' or 'quit' to stop.\n");
 
   const client = new GeminiClient(config);
@@ -35,14 +38,24 @@ export async function main(): Promise<void> {
       break;
     }
 
-    if (input === "clear") {
+    if (input === "/system") {
+      if (config.systemInstruction) {
+        console.log(`System prompt: "${config.systemInstruction}"\n`);
+      } else {
+        console.log("No system prompt set. Use GEMINI_SYSTEM_PROMPT env var.\n");
+      }
+      rl.prompt();
+      continue;
+    }
+
+    if (input === "clear" || input === "/clear") {
       client.clearHistory();
       console.log("History cleared.\n");
       rl.prompt();
       continue;
     }
 
-    if (input === "history") {
+    if (input === "history" || input === "/history") {
       const history = client.getHistory();
       if (history.length === 0) {
         console.log("No history.\n");
@@ -52,6 +65,17 @@ export async function main(): Promise<void> {
         }
         console.log();
       }
+      rl.prompt();
+      continue;
+    }
+
+    if (input === "/help" || input === "help") {
+      console.log("Available commands:");
+      console.log("  /system  — Show current system prompt");
+      console.log("  /clear   — Clear conversation history");
+      console.log("  /history — Show conversation history");
+      console.log("  /help    — Show this help message");
+      console.log("  exit     — Exit the chat session\n");
       rl.prompt();
       continue;
     }

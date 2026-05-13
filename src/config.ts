@@ -2,6 +2,7 @@ export interface AppConfig {
   apiKey: string;
   model: string;
   maxHistoryTurns: number;
+  systemInstruction?: string;
 }
 
 const DEFAULT_MODEL = "gemini-2.0-flash";
@@ -23,10 +24,13 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     );
   }
 
+  const systemInstruction = env.GEMINI_SYSTEM_PROMPT?.trim();
+
   return {
     apiKey,
     model: env.GEMINI_MODEL?.trim() || DEFAULT_MODEL,
     maxHistoryTurns: parseInt(env.GEMINI_MAX_HISTORY || String(DEFAULT_MAX_HISTORY), 10),
+    ...(systemInstruction ? { systemInstruction } : {}),
   };
 }
 
