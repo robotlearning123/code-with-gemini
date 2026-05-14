@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.0] - 2026-05-14
+
+### Added
+- Generation config: `temperature`, `topP`, `topK`, `maxOutputTokens` via environment variables
+- `GenerationConfig` interface in `AppConfig` with range validation
+- `/config` REPL command to display active generation settings
+- New env vars: `GEMINI_TEMPERATURE`, `GEMINI_TOP_P`, `GEMINI_TOP_K`, `GEMINI_MAX_OUTPUT_TOKENS`
+- Generation config wired through `GeminiClient.getModelParams()` to the Gemini SDK
+- 17 new tests for generation config (118 total)
+
 ## [0.2.1] - 2026-05-14
 
 ### Added

@@ -1,6 +1,6 @@
 {
   "name": "wanman-h-29517",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Interactive Gemini chat client — Code With Gemini hackathon submission",
   "type": "module",
   "main": "dist/index.js",
