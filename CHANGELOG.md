@@ -29,9 +29,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `.editorconfig` for consistent formatting
 - Smoke test (`npm run test:smoke`) for CLI --version
 - `validateConfig()` wired into `loadConfig()` for NaN and range protection
+- Graceful SIGINT handling: Ctrl+C during streaming prints `[interrupted]` and returns to prompt
+- `classifyError()` for user-friendly API error messages (rate limit, invalid key, quota, safety filter, network, 404, 403)
+- Version synced from `package.json` via `createRequire()` instead of hardcoded constant
+- Test suite expanded to 49 tests (9 new for error classification)
 
 ### Changed
 - README updated to document CLI flags, system prompt, and global install
 - `index.ts` module-level `main().catch()` moved to `cli.ts` bin entry
 - CI workflow now includes coverage report and smoke test steps
 - `package.json` added `bin`, `types`, and `files` fields
+- `prepublishOnly` script added for safe npm publishes
