@@ -63,6 +63,7 @@ Command-line flags:
 ```bash
 gemini-chat --version    # Print version
 gemini-chat --help       # Show usage and env vars
+gemini-chat --prompt "explain this error"  # One-shot query
 ```
 
 Piping stdin for one-shot queries:
@@ -85,6 +86,7 @@ Once in the chat loop, type any message to get a streamed response from Gemini.
 | `/history` | Show conversation history |
 | `/save <name>` | Save conversation to `.gemini-chat/<name>.json` |
 | `/load <name>` | Load a saved conversation and resume it |
+| `/delete <name>` | Delete a saved conversation |
 | `/list` | List all saved conversations |
 | `/model` | Show current model |
 | `/model <name>` | Switch to a different model mid-session |
