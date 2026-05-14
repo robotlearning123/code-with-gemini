@@ -16,6 +16,13 @@ export interface ChatMessage {
 export interface ChatResponse {
   text: string;
   finishReason?: string;
+  usage?: TokenUsage;
+}
+
+export interface TokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
 }
 
 export interface StreamChunk {
@@ -29,6 +36,7 @@ export class GeminiClient {
   private maxHistoryTurns: number;
   private systemInstruction?: string;
   private history: ChatMessage[] = [];
+  private totalUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
 
   constructor(config: AppConfig) {
     this.genAI = new GoogleGenerativeAI(config.apiKey);
@@ -56,6 +64,21 @@ export class GeminiClient {
   loadHistory(messages: ChatMessage[]): void {
     this.history = messages.slice();
     this.trimHistory();
+  }
+
+  getUsage(): TokenUsage {
+    return { ...this.totalUsage };
+  }
+
+  resetUsage(): void {
+    this.totalUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+  }
+
+  private accumulateUsage(usage: { promptTokenCount?: number; candidatesTokenCount?: number; totalTokenCount?: number } | undefined): void {
+    if (!usage) return;
+    this.totalUsage.promptTokens += usage.promptTokenCount ?? 0;
+    this.totalUsage.completionTokens += usage.candidatesTokenCount ?? 0;
+    this.totalUsage.totalTokens += usage.totalTokenCount ?? 0;
   }
 
   private trimHistory(): void {
@@ -94,9 +117,18 @@ export class GeminiClient {
       this.history.push({ role: "model", text });
       this.trimHistory();
 
+      this.accumulateUsage(response.usageMetadata);
+
       return {
         text,
         finishReason: response.candidates?.[0]?.finishReason,
+        usage: response.usageMetadata
+          ? {
+              promptTokens: response.usageMetadata.promptTokenCount ?? 0,
+              completionTokens: response.usageMetadata.candidatesTokenCount ?? 0,
+              totalTokens: response.usageMetadata.totalTokenCount ?? 0,
+            }
+          : undefined,
       };
     });
   }
@@ -117,6 +149,8 @@ export class GeminiClient {
       fullText += chunkText;
       yield { text: chunkText, done: false };
     }
+
+    this.accumulateUsage((await stream.response).usageMetadata);
 
     this.history.push({ role: "user", text: prompt });
     this.history.push({ role: "model", text: fullText });
