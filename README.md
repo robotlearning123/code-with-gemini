@@ -65,6 +65,14 @@ gemini-chat --version    # Print version
 gemini-chat --help       # Show usage and env vars
 ```
 
+Piping stdin for one-shot queries:
+
+```bash
+cat error.log | gemini-chat
+echo "Explain this TypeScript error" | gemini-chat
+git diff | gemini-chat
+```
+
 ### Interactive Commands
 
 Once in the chat loop, type any message to get a streamed response from Gemini.
