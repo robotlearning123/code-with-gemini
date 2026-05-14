@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import { loadConfig, ConfigError } from "./config.js";
 import { GeminiClient, formatMessage } from "./gemini-client.js";
 import { saveConversation, loadConversation, listConversations, deleteConversation, StorageError } from "./storage.js";
+import { bold, green, cyan, yellow, red, dim } from "./style.js";
 
 const require = createRequire(import.meta.url);
 const VERSION: string = require("../package.json").version;
@@ -144,11 +145,11 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
     return;
   }
 
-  console.log(`Gemini Chat Client v${VERSION} (model: ${config.model})`);
+  console.log(`${bold(cyan(`Gemini Chat Client v${VERSION}`))} (model: ${config.model})`);
   if (config.systemInstruction) {
     console.log(`System prompt: "${config.systemInstruction}"`);
   }
-  console.log("Type your message and press Enter. Type '/help' for commands.\n");
+  console.log(dim("Type your message and press Enter. Type '/help' for commands.\n"));
 
   const client = new GeminiClient(config);
   const rl = readline.createInterface({
@@ -165,7 +166,7 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
       console.log("\n[interrupted]");
       rl.prompt();
     } else {
-      console.log("\nGoodbye!");
+      console.log(`\n${yellow("Goodbye!")}`);
       rl.close();
       process.exit(0);
     }
@@ -177,7 +178,7 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
     const input = line.trim();
 
     if (input === "exit" || input === "quit") {
-      console.log("Goodbye!");
+      console.log(yellow("Goodbye!"));
       rl.close();
       break;
     }
@@ -344,7 +345,7 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
 
     try {
       streaming = true;
-      process.stdout.write("Gemini: ");
+      process.stdout.write(bold(green("Gemini: ")));
       for await (const chunk of client.streamMessage(input)) {
         if (!streaming) break;
         if (!chunk.done) {
@@ -356,7 +357,7 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
     } catch (err) {
       streaming = false;
       const message = err instanceof Error ? err.message : String(err);
-      console.error(`\nError: ${classifyError(message)}\n`);
+      console.error(`\n${red(`Error: ${classifyError(message)}`)}\n`);
     }
 
     rl.prompt();

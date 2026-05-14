@@ -7,6 +7,7 @@ import {
 } from "@google/generative-ai";
 import { AppConfig, GenerationConfig } from "./config.js";
 import { withRetry } from "./retry.js";
+import { bold, cyan, green } from "./style.js";
 
 export interface ChatMessage {
   role: "user" | "model";
@@ -164,6 +165,8 @@ export class GeminiClient {
 }
 
 export function formatMessage(msg: ChatMessage): string {
-  const tag = msg.role === "user" ? "You" : "Gemini";
-  return `[${tag}]: ${msg.text}`;
+  if (msg.role === "user") {
+    return `[${bold(cyan("You"))}]: ${msg.text}`;
+  }
+  return `[${bold(green("Gemini"))}]: ${msg.text}`;
 }
