@@ -43,6 +43,7 @@ function mockStreamMessage(client: GeminiClient, chunks: string[]) {
         startChat: () => ({
           sendMessageStream: async () => ({
             stream: fakeStream(chunks),
+            response: Promise.resolve({ usageMetadata: undefined }),
           }),
         }),
       }),
@@ -199,6 +200,7 @@ describe("systemInstruction", () => {
             startChat: () => ({
               sendMessageStream: async () => ({
                 stream: fakeStream(["ok"]),
+                response: Promise.resolve({ usageMetadata: undefined }),
               }),
             }),
           };
@@ -211,6 +213,155 @@ describe("systemInstruction", () => {
       model: "gemini-2.0-flash",
       systemInstruction: "Be concise.",
     });
+  });
+});
+
+describe("token usage", () => {
+  function mockSendMessageWithUsage(client: GeminiClient, responseText: string, usage: { promptTokenCount: number; candidatesTokenCount: number; totalTokenCount: number }) {
+    vi.spyOn(client as unknown as { genAI: { getGenerativeModel: () => unknown } }, "genAI", "get")
+      .mockReturnValue({
+        getGenerativeModel: () => ({
+          startChat: () => ({
+            sendMessage: async () => ({
+              response: {
+                text: () => responseText,
+                candidates: [{ finishReason: "STOP" }],
+                usageMetadata: usage,
+              },
+            }),
+          }),
+        }),
+      });
+  }
+
+  function mockStreamWithUsage(client: GeminiClient, chunks: string[], usage: { promptTokenCount: number; candidatesTokenCount: number; totalTokenCount: number }) {
+    vi.spyOn(client as unknown as { genAI: { getGenerativeModel: () => unknown } }, "genAI", "get")
+      .mockReturnValue({
+        getGenerativeModel: () => ({
+          startChat: () => ({
+            sendMessageStream: async () => ({
+              stream: fakeStream(chunks),
+              response: Promise.resolve({ usageMetadata: usage }),
+            }),
+          }),
+        }),
+      });
+  }
+
+  it("starts with zero usage", () => {
+    const client = makeClient();
+    const usage = client.getUsage();
+    expect(usage).toEqual({ promptTokens: 0, completionTokens: 0, totalTokens: 0 });
+  });
+
+  it("returns a copy from getUsage", () => {
+    const client = makeClient();
+    const usage = client.getUsage();
+    usage.promptTokens = 999;
+    expect(client.getUsage().promptTokens).toBe(0);
+  });
+
+  it("accumulates usage from sendMessage", async () => {
+    const client = makeClient();
+    mockSendMessageWithUsage(client, "hello", {
+      promptTokenCount: 10,
+      candidatesTokenCount: 5,
+      totalTokenCount: 15,
+    });
+
+    await client.sendMessage("hi");
+    const usage = client.getUsage();
+    expect(usage).toEqual({ promptTokens: 10, completionTokens: 5, totalTokens: 15 });
+  });
+
+  it("accumulates usage across multiple sendMessage calls", async () => {
+    const client = makeClient();
+
+    mockSendMessageWithUsage(client, "first", {
+      promptTokenCount: 10,
+      candidatesTokenCount: 5,
+      totalTokenCount: 15,
+    });
+    await client.sendMessage("q1");
+
+    mockSendMessageWithUsage(client, "second", {
+      promptTokenCount: 20,
+      candidatesTokenCount: 10,
+      totalTokenCount: 30,
+    });
+    await client.sendMessage("q2");
+
+    const usage = client.getUsage();
+    expect(usage).toEqual({ promptTokens: 30, completionTokens: 15, totalTokens: 45 });
+  });
+
+  it("accumulates usage from streamMessage", async () => {
+    const client = makeClient();
+    mockStreamWithUsage(client, ["hi"], {
+      promptTokenCount: 8,
+      candidatesTokenCount: 3,
+      totalTokenCount: 11,
+    });
+
+    for await (const _ of client.streamMessage("hello")) { /* drain */ }
+
+    const usage = client.getUsage();
+    expect(usage).toEqual({ promptTokens: 8, completionTokens: 3, totalTokens: 11 });
+  });
+
+  it("accumulates usage from both sendMessage and streamMessage", async () => {
+    const client = makeClient();
+
+    mockSendMessageWithUsage(client, "response", {
+      promptTokenCount: 10,
+      candidatesTokenCount: 5,
+      totalTokenCount: 15,
+    });
+    await client.sendMessage("q1");
+
+    mockStreamWithUsage(client, ["streamed"], {
+      promptTokenCount: 12,
+      candidatesTokenCount: 6,
+      totalTokenCount: 18,
+    });
+    for await (const _ of client.streamMessage("q2")) { /* drain */ }
+
+    const usage = client.getUsage();
+    expect(usage).toEqual({ promptTokens: 22, completionTokens: 11, totalTokens: 33 });
+  });
+
+  it("handles missing usageMetadata gracefully", async () => {
+    const client = makeClient();
+    mockSendMessage(client, "no metadata");
+
+    await client.sendMessage("hi");
+    expect(client.getUsage()).toEqual({ promptTokens: 0, completionTokens: 0, totalTokens: 0 });
+  });
+
+  it("resetUsage zeroes out accumulated totals", async () => {
+    const client = makeClient();
+    mockSendMessageWithUsage(client, "hello", {
+      promptTokenCount: 100,
+      candidatesTokenCount: 50,
+      totalTokenCount: 150,
+    });
+    await client.sendMessage("hi");
+    expect(client.getUsage().totalTokens).toBe(150);
+
+    client.resetUsage();
+    expect(client.getUsage()).toEqual({ promptTokens: 0, completionTokens: 0, totalTokens: 0 });
+  });
+
+  it("sendMessage returns per-call usage in response", async () => {
+    const client = makeClient();
+    mockSendMessageWithUsage(client, "hello", {
+      promptTokenCount: 10,
+      candidatesTokenCount: 5,
+      totalTokenCount: 15,
+    });
+
+    const response = await client.sendMessage("hi");
+    expect(response.usage).toEqual({ promptTokens: 10, completionTokens: 5, totalTokens: 15 });
   });
 });
 

@@ -40,6 +40,7 @@ function printHelp(): void {
   console.log("  /list          — List saved conversations");
   console.log("  /model         — Show current model");
   console.log("  /model <name>  — Switch to a different model");
+  console.log("  /usage         — Show token usage for this session");
   console.log("  /help          — Show this help message");
   console.log("  exit           — Exit the chat session");
   console.log("  quit           — Exit the chat session");
@@ -221,6 +222,20 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
       } else {
         client.setModel(newModel);
         console.log(`Switched to model: ${newModel}\n`);
+      }
+      rl.prompt();
+      continue;
+    }
+
+    if (input === "/usage") {
+      const usage = client.getUsage();
+      if (usage.totalTokens === 0) {
+        console.log("No token usage yet.\n");
+      } else {
+        console.log(`Token usage this session:`);
+        console.log(`  Prompt:     ${usage.promptTokens}`);
+        console.log(`  Completion: ${usage.completionTokens}`);
+        console.log(`  Total:      ${usage.totalTokens}\n`);
       }
       rl.prompt();
       continue;
