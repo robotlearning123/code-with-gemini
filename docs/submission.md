@@ -10,14 +10,14 @@ As developers, we spend most of our time in the terminal. We wanted to bring the
 
 ## What It Does
 
-Gemini Chat CLI is a lightweight command-line interface that connects to Google's Gemini API for interactive, streamed conversations. Users type messages in their terminal and receive real-time streaming responses from Gemini 2.0 Flash. The client maintains conversation history across turns (configurable limit), supports commands like `/help`, `/clear`, `/history`, `/system`, `/model`, `/usage`, and `/save`/`/load`, and includes a configurable system prompt via the `GEMINI_SYSTEM_PROMPT` environment variable. Conversation persistence, model switching, and token usage tracking are built in. Standard CLI flags (`--version`, `--help`) are supported out of the box. Only an API key is required to get started.
+Gemini Chat CLI is a lightweight command-line interface that connects to Google's Gemini API for interactive, streamed conversations. Users type messages in their terminal and receive real-time streaming responses from Gemini 2.0 Flash with colorized output. The client maintains conversation history across turns (configurable limit), supports commands like `/help`, `/clear`, `/history`, `/system`, `/model`, `/usage`, `/config`, `/save`, `/load`, `/delete`, and includes a configurable system prompt via the `GEMINI_SYSTEM_PROMPT` environment variable. Generation config (temperature, topP, topK) is supported via env vars. Non-interactive usage is available through stdin piping (`cat error.log | gemini-chat`) and the `--prompt` flag. Conversation persistence, model switching, and token usage tracking are built in. Only an API key is required to get started.
 
 ## How We Built It
 
 - **TypeScript** for type-safe development with ES2022/Node16 module resolution
 - **@google/generative-ai SDK** for Gemini API integration with streaming support
 - **Node.js readline** for the interactive terminal interface
-- **Vitest** for unit testing — 101 tests covering config validation, streaming, systemInstruction wiring, error handling, retry logic, storage, token usage, and CLI flags
+- **Vitest** for unit testing — 126 tests covering config validation, streaming, systemInstruction wiring, error handling, retry logic, storage, token usage, generation config, stdin pipe, colorized output, and CLI flags
 - **GitHub Actions CI** with Node 18/20/22 matrix, coverage reporting, and smoke tests
 - **npm-ready package** with global `gemini-chat` bin entry, TypeScript declarations, and `files` whitelist
 - Environment-based configuration (GEMINI_API_KEY, GEMINI_MODEL, GEMINI_MAX_HISTORY, GEMINI_SYSTEM_PROMPT)
@@ -32,7 +32,7 @@ Gemini Chat CLI is a lightweight command-line interface that connects to Google'
 
 - Clean separation of concerns: config, API client, and CLI entry point are fully decoupled
 - Streaming responses render character-by-character in the terminal for a natural feel
-- Full test coverage of core modules with SDK mocking — 101 tests, zero live API calls needed
+- Full test coverage of core modules with SDK mocking — 126 tests, zero live API calls needed
 - CI pipeline with 3-node matrix, coverage reporting, and automated smoke test
 - Zero external runtime dependencies beyond the official Google AI SDK
 
@@ -44,9 +44,7 @@ Gemini Chat CLI is a lightweight command-line interface that connects to Google'
 
 ## What's Next
 
-- **Markdown rendering**: Format code blocks and lists in terminal output using chalk or terminal-markdown
-- **Multi-turn file context**: Allow users to pipe files into the conversation (`cat error.log | gemini-chat`) for debugging assistance
-- **Generation config**: Expose temperature, topP, topK via environment variables for fine-tuned control
+- **Markdown rendering**: Format code blocks and lists in terminal output using terminal-markdown
 - **Plugin system**: Allow custom commands and response post-processors via a plugin API
 
 ## Built With
