@@ -44,6 +44,11 @@ export class GeminiClient {
     this.history = [];
   }
 
+  loadHistory(messages: ChatMessage[]): void {
+    this.history = messages.slice();
+    this.trimHistory();
+  }
+
   private trimHistory(): void {
     const maxMessages = this.maxHistoryTurns * 2;
     if (this.history.length > maxMessages) {
