@@ -38,6 +38,8 @@ function printHelp(): void {
   console.log("  /save <name>   — Save conversation to file");
   console.log("  /load <name>   — Load a saved conversation");
   console.log("  /list          — List saved conversations");
+  console.log("  /model         — Show current model");
+  console.log("  /model <name>  — Switch to a different model");
   console.log("  /help          — Show this help message");
   console.log("  exit           — Exit the chat session");
   console.log("  quit           — Exit the chat session");
@@ -201,6 +203,24 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
           console.log(`  ${c}`);
         }
         console.log();
+      }
+      rl.prompt();
+      continue;
+    }
+
+    if (input === "/model") {
+      console.log(`Current model: ${client.getModel()}\n`);
+      rl.prompt();
+      continue;
+    }
+
+    if (input.startsWith("/model ")) {
+      const newModel = input.slice(7).trim();
+      if (!newModel) {
+        console.log("Usage: /model <model-name>\n");
+      } else {
+        client.setModel(newModel);
+        console.log(`Switched to model: ${newModel}\n`);
       }
       rl.prompt();
       continue;

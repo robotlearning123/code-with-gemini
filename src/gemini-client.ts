@@ -41,6 +41,14 @@ export class GeminiClient {
     return [...this.history];
   }
 
+  getModel(): string {
+    return this.model;
+  }
+
+  setModel(model: string): void {
+    this.model = model;
+  }
+
   clearHistory(): void {
     this.history = [];
   }

@@ -124,3 +124,52 @@ describe("toGeminiHistory (verified via sendMessage call)", () => {
     vi.restoreAllMocks();
   });
 });
+
+describe("model switching", () => {
+  it("getModel returns the initial model", () => {
+    const client = makeClient();
+    expect(client.getModel()).toBe("gemini-2.0-flash");
+  });
+
+  it("setModel changes the active model", () => {
+    const client = makeClient();
+    client.setModel("gemini-2.5-pro");
+    expect(client.getModel()).toBe("gemini-2.5-pro");
+  });
+
+  it("setModel can be called multiple times", () => {
+    const client = makeClient();
+    client.setModel("gemini-2.5-pro");
+    expect(client.getModel()).toBe("gemini-2.5-pro");
+    client.setModel("gemini-2.0-flash-lite");
+    expect(client.getModel()).toBe("gemini-2.0-flash-lite");
+  });
+
+  it("new model is used in subsequent API calls", async () => {
+    const client = makeClient();
+    let capturedModel = "";
+
+    vi.spyOn(client as unknown as { genAI: { getGenerativeModel: (opts: { model: string }) => unknown } }, "genAI", "get")
+      .mockReturnValue({
+        getGenerativeModel: (opts: { model: string }) => {
+          capturedModel = opts.model;
+          return {
+            startChat: () => ({
+              sendMessage: async () => ({
+                response: {
+                  text: () => "ok",
+                  candidates: [{ finishReason: "STOP" }],
+                },
+              }),
+            }),
+          };
+        },
+      });
+
+    client.setModel("gemini-2.5-pro");
+    await client.sendMessage("hello");
+    expect(capturedModel).toBe("gemini-2.5-pro");
+
+    vi.restoreAllMocks();
+  });
+});
