@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.0] - 2026-05-14
+
+### Added
+- Conversation persistence: `/save <name>`, `/load <name>`, `/list` commands
+- `src/storage.ts` — save/load conversations as JSON in `.gemini-chat/` directory
+- `GeminiClient.loadHistory()` for injecting saved messages
+- Name sanitization to prevent path traversal in conversation files
+- Exponential backoff with jitter for transient API failures (`src/retry.ts`)
+- `withRetry()` wraps `sendMessage` and `streamMessage` with automatic retry
+- Retryable errors: 429, 500, 503, rate limit, quota, network, timeout
+- Non-retryable errors (403, 404, auth) fail immediately without retry
+- `/model` and `/model <name>` commands to switch models mid-session
+- `GeminiClient.getModel()` and `setModel()` for runtime model switching
+- Coverage thresholds in vitest config (80% statements/functions/lines, 75% branches)
+- `.env.example` template for new user onboarding
+
+### Changed
+- Test suite expanded from 49 to 92 tests
+- Version assertion tests now version-agnostic (checks for `v` prefix)
+
 ## [0.1.0] - 2025-05-13
 
 ### Added

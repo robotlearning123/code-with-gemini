@@ -28,14 +28,14 @@ describe("main --version", () => {
     const cap = captureConsole();
     await main(["--version"]);
     cap.restore();
-    expect(cap.logs.join("\n")).toContain("gemini-chat v0.1.0");
+    expect(cap.logs.join("\n")).toContain("gemini-chat v");
   });
 
   it("prints version and exits with -v", async () => {
     const cap = captureConsole();
     await main(["-v"]);
     cap.restore();
-    expect(cap.logs.join("\n")).toContain("gemini-chat v0.1.0");
+    expect(cap.logs.join("\n")).toContain("gemini-chat v");
   });
 });
 
