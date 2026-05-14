@@ -96,3 +96,23 @@ export function listConversations(baseDir: string = process.cwd()): string[] {
     .filter((f) => f.endsWith(FILE_EXTENSION))
     .map((f) => path.basename(f, FILE_EXTENSION));
 }
+
+export function deleteConversation(
+  name: string,
+  baseDir: string = process.cwd()
+): void {
+  if (!name || !name.trim()) {
+    throw new StorageError("Conversation name must be a non-empty string");
+  }
+
+  const sanitized = name.trim().replace(/[^a-zA-Z0-9_-]/g, "_");
+  const filePath = path.join(baseDir, DEFAULT_DIR, sanitized + FILE_EXTENSION);
+
+  if (!fs.existsSync(filePath)) {
+    throw new StorageError(
+      `Conversation "${name}" not found.`
+    );
+  }
+
+  fs.unlinkSync(filePath);
+}
