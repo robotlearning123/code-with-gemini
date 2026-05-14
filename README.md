@@ -17,6 +17,12 @@ Built for the [Code With Gemini](https://code-with-gemini.devpost.com/) hackatho
 │   readline   │     │     config.ts    │
 │   (stdio)    │     │  (env + defaults)│
 └──────────────┘     └──────────────────┘
+        │
+        ▼
+┌──────────────┐
+│  storage.ts  │
+│ (save/load)  │
+└──────────────┘
 ```
 
 ## Prerequisites
@@ -69,6 +75,9 @@ Once in the chat loop, type any message to get a streamed response from Gemini.
 | `/system` | Show the active system prompt |
 | `/clear` | Clear conversation history |
 | `/history` | Show conversation history |
+| `/save <name>` | Save conversation to `.gemini-chat/<name>.json` |
+| `/load <name>` | Load a saved conversation and resume it |
+| `/list` | List all saved conversations |
 | `exit` or `quit` | End the session |
 
 ### System Prompt
@@ -79,6 +88,25 @@ Set a system instruction to shape Gemini's behavior across all turns:
 export GEMINI_SYSTEM_PROMPT="You are a concise coding assistant."
 npm start
 ```
+
+### Conversation Persistence
+
+Save and resume conversations across sessions:
+
+```
+> /save project-ideas
+Conversation saved to .gemini-chat/project-ideas.json
+
+> /load project-ideas
+Loaded 8 messages from "project-ideas" (saved 2026-05-14T01:00:00.000Z).
+
+> /list
+Saved conversations:
+  project-ideas
+  code-review
+```
+
+Saved files are stored in `.gemini-chat/` in the current working directory as JSON files.
 
 ## Configuration
 
@@ -99,7 +127,8 @@ All configuration is via environment variables:
 │   ├── cli.ts            # CLI bin entry (shebang)
 │   ├── index.ts          # Chat loop, CLI flags
 │   ├── gemini-client.ts  # Gemini API wrapper (streaming + history)
-│   └── config.ts         # Environment configuration
+│   ├── config.ts         # Environment configuration
+│   └── storage.ts        # Conversation save/load persistence
 ├── tests/                # Vitest unit tests
 ├── CHANGELOG.md          # Release history
 ├── docs/

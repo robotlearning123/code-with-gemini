@@ -2,6 +2,7 @@ import * as readline from "node:readline";
 import { createRequire } from "node:module";
 import { loadConfig, ConfigError } from "./config.js";
 import { GeminiClient, formatMessage } from "./gemini-client.js";
+import { saveConversation, loadConversation, listConversations, StorageError } from "./storage.js";
 
 const require = createRequire(import.meta.url);
 const VERSION: string = require("../package.json").version;
@@ -31,12 +32,15 @@ export function classifyError(message: string): string {
 
 function printHelp(): void {
   console.log("Available commands:");
-  console.log("  /system  — Show current system prompt");
-  console.log("  /clear   — Clear conversation history");
-  console.log("  /history — Show conversation history");
-  console.log("  /help    — Show this help message");
-  console.log("  exit     — Exit the chat session");
-  console.log("  quit     — Exit the chat session");
+  console.log("  /system        — Show current system prompt");
+  console.log("  /clear         — Clear conversation history");
+  console.log("  /history       — Show conversation history");
+  console.log("  /save <name>   — Save conversation to file");
+  console.log("  /load <name>   — Load a saved conversation");
+  console.log("  /list          — List saved conversations");
+  console.log("  /help          — Show this help message");
+  console.log("  exit           — Exit the chat session");
+  console.log("  quit           — Exit the chat session");
   console.log();
 }
 
@@ -142,6 +146,59 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
       } else {
         for (const msg of history) {
           console.log(formatMessage(msg));
+        }
+        console.log();
+      }
+      rl.prompt();
+      continue;
+    }
+
+    if (input.startsWith("/save")) {
+      const name = input.slice(5).trim();
+      if (!name) {
+        console.log("Usage: /save <name>\n");
+      } else {
+        try {
+          const filePath = saveConversation(client.getHistory(), name, config.model);
+          console.log(`Conversation saved to ${filePath}\n`);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          console.error(`Save failed: ${message}\n`);
+        }
+      }
+      rl.prompt();
+      continue;
+    }
+
+    if (input.startsWith("/load")) {
+      const name = input.slice(6).trim();
+      if (!name) {
+        console.log("Usage: /load <name>\n");
+      } else {
+        try {
+          const data = loadConversation(name);
+          client.loadHistory(data.messages);
+          console.log(`Loaded ${data.messages.length} messages from "${name}" (saved ${data.savedAt}).\n`);
+        } catch (err) {
+          if (err instanceof StorageError) {
+            console.error(`${err.message}\n`);
+          } else {
+            console.error(`Load failed: ${err instanceof Error ? err.message : String(err)}\n`);
+          }
+        }
+      }
+      rl.prompt();
+      continue;
+    }
+
+    if (input === "/list") {
+      const conversations = listConversations();
+      if (conversations.length === 0) {
+        console.log("No saved conversations.\n");
+      } else {
+        console.log("Saved conversations:");
+        for (const c of conversations) {
+          console.log(`  ${c}`);
         }
         console.log();
       }
