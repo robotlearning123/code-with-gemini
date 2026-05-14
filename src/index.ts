@@ -41,6 +41,7 @@ function printHelp(): void {
   console.log("  /model         — Show current model");
   console.log("  /model <name>  — Switch to a different model");
   console.log("  /usage         — Show token usage for this session");
+  console.log("  /config        — Show current generation config");
   console.log("  /help          — Show this help message");
   console.log("  exit           — Exit the chat session");
   console.log("  quit           — Exit the chat session");
@@ -67,6 +68,10 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
     console.log("  GEMINI_MODEL          Model to use (default: gemini-2.0-flash)");
     console.log("  GEMINI_MAX_HISTORY    Max conversation turns to keep (default: 20)");
     console.log("  GEMINI_SYSTEM_PROMPT  Optional system instruction for the model");
+    console.log("  GEMINI_TEMPERATURE    Sampling temperature 0-2 (default: model default)");
+    console.log("  GEMINI_TOP_P          Top-P nucleus sampling 0-1");
+    console.log("  GEMINI_TOP_K          Top-K sampling (>= 1)");
+    console.log("  GEMINI_MAX_OUTPUT_TOKENS  Max tokens in response");
     return;
   }
 
@@ -236,6 +241,22 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
         console.log(`  Prompt:     ${usage.promptTokens}`);
         console.log(`  Completion: ${usage.completionTokens}`);
         console.log(`  Total:      ${usage.totalTokens}\n`);
+      }
+      rl.prompt();
+      continue;
+    }
+
+    if (input === "/config") {
+      if (config.generationConfig && Object.keys(config.generationConfig).length > 0) {
+        console.log("Generation config:");
+        const gc = config.generationConfig;
+        if (gc.temperature !== undefined) console.log(`  Temperature:     ${gc.temperature}`);
+        if (gc.topP !== undefined) console.log(`  Top P:           ${gc.topP}`);
+        if (gc.topK !== undefined) console.log(`  Top K:           ${gc.topK}`);
+        if (gc.maxOutputTokens !== undefined) console.log(`  Max output tokens: ${gc.maxOutputTokens}`);
+        console.log();
+      } else {
+        console.log("No generation config set. Use GEMINI_TEMPERATURE, GEMINI_TOP_P, GEMINI_TOP_K, or GEMINI_MAX_OUTPUT_TOKENS env vars.\n");
       }
       rl.prompt();
       continue;

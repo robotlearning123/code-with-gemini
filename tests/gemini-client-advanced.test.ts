@@ -5,12 +5,13 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function makeClient(opts?: { maxHistoryTurns?: number; systemInstruction?: string }) {
+function makeClient(opts?: { maxHistoryTurns?: number; systemInstruction?: string; generationConfig?: { temperature?: number; topP?: number; topK?: number; maxOutputTokens?: number } }) {
   return new GeminiClient({
     apiKey: "test-key",
     model: "gemini-2.0-flash",
     maxHistoryTurns: opts?.maxHistoryTurns ?? 10,
     systemInstruction: opts?.systemInstruction,
+    generationConfig: opts?.generationConfig,
   });
 }
 
@@ -362,6 +363,88 @@ describe("token usage", () => {
 
     const response = await client.sendMessage("hi");
     expect(response.usage).toEqual({ promptTokens: 10, completionTokens: 5, totalTokens: 15 });
+  });
+});
+
+describe("generation config", () => {
+  it("passes generationConfig to getGenerativeModel", async () => {
+    const client = makeClient({ generationConfig: { temperature: 0.7, topK: 40 } });
+    let capturedParams: unknown = null;
+
+    vi.spyOn(client as unknown as { genAI: { getGenerativeModel: () => unknown } }, "genAI", "get")
+      .mockReturnValue({
+        getGenerativeModel: (params: unknown) => {
+          capturedParams = params;
+          return {
+            startChat: () => ({
+              sendMessage: async () => ({
+                response: {
+                  text: () => "hi",
+                  candidates: [{ finishReason: "STOP" }],
+                },
+              }),
+            }),
+          };
+        },
+      });
+
+    await client.sendMessage("hello");
+    expect(capturedParams).toEqual({
+      model: "gemini-2.0-flash",
+      generationConfig: { temperature: 0.7, topK: 40 },
+    });
+  });
+
+  it("passes generationConfig during streaming", async () => {
+    const client = makeClient({ generationConfig: { temperature: 0.5 } });
+    let capturedParams: unknown = null;
+
+    vi.spyOn(client as unknown as { genAI: { getGenerativeModel: () => unknown } }, "genAI", "get")
+      .mockReturnValue({
+        getGenerativeModel: (params: unknown) => {
+          capturedParams = params;
+          return {
+            startChat: () => ({
+              sendMessageStream: async () => ({
+                stream: fakeStream(["ok"]),
+                response: Promise.resolve({ usageMetadata: undefined }),
+              }),
+            }),
+          };
+        },
+      });
+
+    for await (const _ of client.streamMessage("hello")) { /* drain */ }
+
+    expect(capturedParams).toEqual({
+      model: "gemini-2.0-flash",
+      generationConfig: { temperature: 0.5 },
+    });
+  });
+
+  it("omits generationConfig when not set", async () => {
+    const client = makeClient();
+    let capturedParams: unknown = null;
+
+    vi.spyOn(client as unknown as { genAI: { getGenerativeModel: () => unknown } }, "genAI", "get")
+      .mockReturnValue({
+        getGenerativeModel: (params: unknown) => {
+          capturedParams = params;
+          return {
+            startChat: () => ({
+              sendMessage: async () => ({
+                response: {
+                  text: () => "hi",
+                  candidates: [{ finishReason: "STOP" }],
+                },
+              }),
+            }),
+          };
+        },
+      });
+
+    await client.sendMessage("hello");
+    expect((capturedParams as Record<string, unknown>).generationConfig).toBeUndefined();
   });
 });
 

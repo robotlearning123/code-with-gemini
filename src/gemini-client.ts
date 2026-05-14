@@ -5,7 +5,7 @@ import {
   GenerateContentResult,
   GenerateContentStreamResult,
 } from "@google/generative-ai";
-import { AppConfig } from "./config.js";
+import { AppConfig, GenerationConfig } from "./config.js";
 import { withRetry } from "./retry.js";
 
 export interface ChatMessage {
@@ -35,6 +35,7 @@ export class GeminiClient {
   private model: string;
   private maxHistoryTurns: number;
   private systemInstruction?: string;
+  private generationConfig?: GenerationConfig;
   private history: ChatMessage[] = [];
   private totalUsage: TokenUsage = { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
 
@@ -43,6 +44,7 @@ export class GeminiClient {
     this.model = config.model;
     this.maxHistoryTurns = config.maxHistoryTurns;
     this.systemInstruction = config.systemInstruction;
+    this.generationConfig = config.generationConfig;
   }
 
   getHistory(): ChatMessage[] {
@@ -95,10 +97,11 @@ export class GeminiClient {
     }));
   }
 
-  private getModelParams(): { model: string; systemInstruction?: string } {
+  private getModelParams(): { model: string; systemInstruction?: string; generationConfig?: GenerationConfig } {
     return {
       model: this.model,
       ...(this.systemInstruction ? { systemInstruction: this.systemInstruction } : {}),
+      ...(this.generationConfig ? { generationConfig: this.generationConfig } : {}),
     };
   }
 
