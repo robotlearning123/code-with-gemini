@@ -80,6 +80,7 @@ Once in the chat loop, type any message to get a streamed response from Gemini.
 | `/list` | List all saved conversations |
 | `/model` | Show current model |
 | `/model <name>` | Switch to a different model mid-session |
+| `/usage` | Show token usage for this session |
 | `exit` or `quit` | End the session |
 
 ### System Prompt
