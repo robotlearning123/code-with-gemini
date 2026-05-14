@@ -2,7 +2,7 @@ import * as readline from "node:readline";
 import { createRequire } from "node:module";
 import { loadConfig, ConfigError } from "./config.js";
 import { GeminiClient, formatMessage } from "./gemini-client.js";
-import { saveConversation, loadConversation, listConversations, StorageError } from "./storage.js";
+import { saveConversation, loadConversation, listConversations, deleteConversation, StorageError } from "./storage.js";
 
 const require = createRequire(import.meta.url);
 const VERSION: string = require("../package.json").version;
@@ -46,6 +46,7 @@ function printHelp(): void {
   console.log("  /history       — Show conversation history");
   console.log("  /save <name>   — Save conversation to file");
   console.log("  /load <name>   — Load a saved conversation");
+  console.log("  /delete <name> — Delete a saved conversation");
   console.log("  /list          — List saved conversations");
   console.log("  /model         — Show current model");
   console.log("  /model <name>  — Switch to a different model");
@@ -71,6 +72,7 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
     console.log("Options:");
     console.log("  -v, --version  Print version and exit");
     console.log("  -h, --help     Print this help message and exit");
+    console.log("  -p, --prompt   Send a one-shot prompt and exit (non-interactive)");
     console.log();
     console.log("Environment variables:");
     console.log("  GEMINI_API_KEY        Required. Your Google AI API key");
@@ -81,6 +83,36 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
     console.log("  GEMINI_TOP_P          Top-P nucleus sampling 0-1");
     console.log("  GEMINI_TOP_K          Top-K sampling (>= 1)");
     console.log("  GEMINI_MAX_OUTPUT_TOKENS  Max tokens in response");
+    return;
+  }
+
+  // Handle --prompt flag for one-shot queries
+  const promptIdx = args.findIndex((a) => a === "--prompt" || a === "-p");
+  if (promptIdx !== -1) {
+    const promptText = args.slice(promptIdx + 1).join(" ");
+    if (!promptText) {
+      console.error("Error: --prompt requires a message. Usage: gemini-chat --prompt \"your message\"");
+      process.exit(1);
+    }
+    let config;
+    try {
+      config = loadConfig();
+    } catch (err) {
+      if (err instanceof ConfigError) {
+        console.error(`Configuration error: ${err.message}`);
+        process.exit(1);
+      }
+      throw err;
+    }
+    const client = new GeminiClient(config);
+    try {
+      const response = await client.sendMessage(promptText);
+      console.log(response.text);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`Error: ${classifyError(message)}`);
+      process.exit(1);
+    }
     return;
   }
 
@@ -235,6 +267,23 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
           console.log(`  ${c}`);
         }
         console.log();
+      }
+      rl.prompt();
+      continue;
+    }
+
+    if (input.startsWith("/delete")) {
+      const name = input.slice(7).trim();
+      if (!name) {
+        console.log("Usage: /delete <name>\n");
+      } else {
+        try {
+          deleteConversation(name);
+          console.log(`Conversation "${name}" deleted.\n`);
+        } catch (err) {
+          const message = err instanceof Error ? err.message : String(err);
+          console.error(`${message}\n`);
+        }
       }
       rl.prompt();
       continue;

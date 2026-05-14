@@ -5,6 +5,7 @@ import {
   saveConversation,
   loadConversation,
   listConversations,
+  deleteConversation,
   StorageError,
 } from "../src/storage.js";
 import type { ChatMessage } from "../src/gemini-client.js";
@@ -144,5 +145,24 @@ describe("listConversations", () => {
 
     const names = listConversations(TEST_DIR);
     expect(names).toEqual(["real"]);
+  });
+});
+
+describe("deleteConversation", () => {
+  it("deletes an existing conversation", () => {
+    saveConversation(makeMessages(2), "to-delete", "gemini-2.0-flash", TEST_DIR);
+    expect(listConversations(TEST_DIR)).toContain("to-delete");
+
+    deleteConversation("to-delete", TEST_DIR);
+    expect(listConversations(TEST_DIR)).not.toContain("to-delete");
+  });
+
+  it("throws StorageError for non-existent conversation", () => {
+    expect(() => deleteConversation("nonexistent", TEST_DIR)).toThrow(StorageError);
+    expect(() => deleteConversation("nonexistent", TEST_DIR)).toThrow(/not found/);
+  });
+
+  it("throws StorageError for empty name", () => {
+    expect(() => deleteConversation("", TEST_DIR)).toThrow(StorageError);
   });
 });
