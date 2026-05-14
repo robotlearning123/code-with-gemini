@@ -17,12 +17,12 @@ Built for the [Code With Gemini](https://code-with-gemini.devpost.com/) hackatho
 │   readline   │     │     config.ts    │
 │   (stdio)    │     │  (env + defaults)│
 └──────────────┘     └──────────────────┘
-        │
-        ▼
-┌──────────────┐
-│  storage.ts  │
-│ (save/load)  │
-└──────────────┘
+        │                     │
+        ▼                     ▼
+┌──────────────┐     ┌──────────────────┐
+│  storage.ts  │     │     retry.ts     │
+│ (save/load)  │     │  (backoff+jitter)│
+└──────────────┘     └──────────────────┘
 ```
 
 ## Prerequisites
@@ -78,6 +78,8 @@ Once in the chat loop, type any message to get a streamed response from Gemini.
 | `/save <name>` | Save conversation to `.gemini-chat/<name>.json` |
 | `/load <name>` | Load a saved conversation and resume it |
 | `/list` | List all saved conversations |
+| `/model` | Show current model |
+| `/model <name>` | Switch to a different model mid-session |
 | `exit` or `quit` | End the session |
 
 ### System Prompt
@@ -108,6 +110,24 @@ Saved conversations:
 
 Saved files are stored in `.gemini-chat/` in the current working directory as JSON files.
 
+### Model Switching
+
+Switch between Gemini models without restarting the session:
+
+```
+> /model
+Current model: gemini-2.0-flash
+
+> /model gemini-2.5-pro
+Switched to model: gemini-2.5-pro
+```
+
+The new model takes effect on the next message. Conversation history is preserved across switches.
+
+### Automatic Retries
+
+Transient API failures (rate limits, 500/503 errors, network timeouts) are retried automatically with exponential backoff + jitter. Default: 3 attempts, 1s base delay, 10s max. Auth errors (403) and "not found" (404) are not retried.
+
 ## Configuration
 
 All configuration is via environment variables:
@@ -128,7 +148,8 @@ All configuration is via environment variables:
 │   ├── index.ts          # Chat loop, CLI flags
 │   ├── gemini-client.ts  # Gemini API wrapper (streaming + history)
 │   ├── config.ts         # Environment configuration
-│   └── storage.ts        # Conversation save/load persistence
+│   ├── storage.ts        # Conversation save/load persistence
+│   └── retry.ts          # Exponential backoff with jitter
 ├── tests/                # Vitest unit tests
 ├── CHANGELOG.md          # Release history
 ├── docs/
