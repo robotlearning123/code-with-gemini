@@ -33,6 +33,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `classifyError()` for user-friendly API error messages (rate limit, invalid key, quota, safety filter, network, 404, 403)
 - Version synced from `package.json` via `createRequire()` instead of hardcoded constant
 - Test suite expanded to 49 tests (9 new for error classification)
+- Conversation persistence: `/save <name>`, `/load <name>`, `/list` commands
+- `src/storage.ts` — save/load conversations as JSON in `.gemini-chat/` directory
+- `GeminiClient.loadHistory()` for injecting saved messages
+- Name sanitization to prevent path traversal in conversation files
+- Test suite expanded to 64 tests (15 new for storage)
+- Exponential backoff with jitter for transient API failures (`src/retry.ts`)
+- `withRetry()` wraps `sendMessage` and `streamMessage` with automatic retry
+- Retryable errors: 429, 500, 503, rate limit, quota, network, timeout
+- Non-retryable errors (403, 404, auth) fail immediately without retry
+- Default retry config: 3 attempts, 1s base delay, 10s max, exponential + jitter
+- Test suite expanded to 88 tests (24 new for retry logic)
 
 ### Changed
 - README updated to document CLI flags, system prompt, and global install
