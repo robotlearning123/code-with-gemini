@@ -6,6 +6,7 @@ import {
   GenerateContentStreamResult,
 } from "@google/generative-ai";
 import { AppConfig } from "./config.js";
+import { withRetry } from "./retry.js";
 
 export interface ChatMessage {
   role: "user" | "model";
@@ -71,23 +72,25 @@ export class GeminiClient {
   }
 
   async sendMessage(prompt: string): Promise<ChatResponse> {
-    const generativeModel = this.genAI.getGenerativeModel(this.getModelParams());
-    const chat = generativeModel.startChat({
-      history: this.toGeminiHistory(),
+    return withRetry(async () => {
+      const generativeModel = this.genAI.getGenerativeModel(this.getModelParams());
+      const chat = generativeModel.startChat({
+        history: this.toGeminiHistory(),
+      });
+
+      const result: GenerateContentResult = await chat.sendMessage(prompt);
+      const response = result.response;
+      const text = response.text();
+
+      this.history.push({ role: "user", text: prompt });
+      this.history.push({ role: "model", text });
+      this.trimHistory();
+
+      return {
+        text,
+        finishReason: response.candidates?.[0]?.finishReason,
+      };
     });
-
-    const result: GenerateContentResult = await chat.sendMessage(prompt);
-    const response = result.response;
-    const text = response.text();
-
-    this.history.push({ role: "user", text: prompt });
-    this.history.push({ role: "model", text });
-    this.trimHistory();
-
-    return {
-      text,
-      finishReason: response.candidates?.[0]?.finishReason,
-    };
   }
 
   async *streamMessage(prompt: string): AsyncGenerator<StreamChunk> {
@@ -96,7 +99,9 @@ export class GeminiClient {
       history: this.toGeminiHistory(),
     });
 
-    const stream: GenerateContentStreamResult = await chat.sendMessageStream(prompt);
+    const stream: GenerateContentStreamResult = await withRetry(() =>
+      chat.sendMessageStream(prompt)
+    );
 
     let fullText = "";
     for await (const chunk of stream.stream) {
