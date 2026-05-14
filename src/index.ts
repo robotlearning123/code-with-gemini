@@ -30,6 +30,15 @@ export function classifyError(message: string): string {
   return message;
 }
 
+export function readStdin(): Promise<string> {
+  return new Promise((resolve) => {
+    let data = "";
+    process.stdin.setEncoding("utf8");
+    process.stdin.on("data", (chunk: string) => { data += chunk; });
+    process.stdin.on("end", () => resolve(data));
+  });
+}
+
 function printHelp(): void {
   console.log("Available commands:");
   console.log("  /system        — Show current system prompt");
@@ -84,6 +93,23 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
       process.exit(1);
     }
     throw err;
+  }
+
+  // If stdin is piped (not a TTY), read all input, send as a single message, and exit
+  if (!process.stdin.isTTY) {
+    const client = new GeminiClient(config);
+    const stdin = await readStdin();
+    if (stdin.trim()) {
+      try {
+        const response = await client.sendMessage(stdin);
+        console.log(response.text);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error(`Error: ${classifyError(message)}`);
+        process.exit(1);
+      }
+    }
+    return;
   }
 
   console.log(`Gemini Chat Client v${VERSION} (model: ${config.model})`);
