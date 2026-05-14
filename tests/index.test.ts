@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { main } from "../src/index.js";
+import { main, classifyError } from "../src/index.js";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -76,5 +76,43 @@ describe("main missing API key", () => {
 
     if (original) process.env.GEMINI_API_KEY = original;
     exitSpy.mockRestore();
+  });
+});
+
+describe("classifyError", () => {
+  it("classifies API key errors", () => {
+    expect(classifyError("invalid api key provided")).toContain("Invalid API key");
+  });
+
+  it("classifies rate limit errors", () => {
+    expect(classifyError("API rate limit exceeded")).toContain("rate limit or quota");
+  });
+
+  it("classifies quota errors", () => {
+    expect(classifyError("Resource exhausted: quota")).toContain("rate limit or quota");
+  });
+
+  it("classifies 429 errors", () => {
+    expect(classifyError("Request failed with 429")).toContain("rate limit or quota");
+  });
+
+  it("classifies permission errors", () => {
+    expect(classifyError("403 Forbidden")).toContain("access denied");
+  });
+
+  it("classifies model not found errors", () => {
+    expect(classifyError("Model not found: gemini-xxx")).toContain("Model not found");
+  });
+
+  it("classifies network errors", () => {
+    expect(classifyError("ECONNREFUSED network error")).toContain("Network error");
+  });
+
+  it("classifies safety filter errors", () => {
+    expect(classifyError("Response blocked by safety")).toContain("safety filters");
+  });
+
+  it("passes through unknown errors unchanged", () => {
+    expect(classifyError("Something unexpected happened")).toBe("Something unexpected happened");
   });
 });

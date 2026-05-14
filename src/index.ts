@@ -1,8 +1,33 @@
 import * as readline from "node:readline";
+import { createRequire } from "node:module";
 import { loadConfig, ConfigError } from "./config.js";
 import { GeminiClient, formatMessage } from "./gemini-client.js";
 
-const VERSION = "0.1.0";
+const require = createRequire(import.meta.url);
+const VERSION: string = require("../package.json").version;
+
+export function classifyError(message: string): string {
+  const lower = message.toLowerCase();
+  if (lower.includes("api key") || lower.includes("api_key") || lower.includes("invalid api")) {
+    return "Invalid API key. Check your GEMINI_API_KEY environment variable.";
+  }
+  if (lower.includes("quota") || lower.includes("rate limit") || lower.includes("429")) {
+    return "API rate limit or quota exceeded. Wait a moment and try again.";
+  }
+  if (lower.includes("permission") || lower.includes("forbidden") || lower.includes("403")) {
+    return "API access denied. Your key may not have access to this model.";
+  }
+  if (lower.includes("not found") || lower.includes("404")) {
+    return "Model not found. Check your GEMINI_MODEL setting.";
+  }
+  if (lower.includes("network") || lower.includes("econnrefused") || lower.includes("timeout")) {
+    return "Network error. Check your internet connection and try again.";
+  }
+  if (lower.includes("safety") || lower.includes("blocked")) {
+    return "Response blocked by safety filters. Try rephrasing your message.";
+  }
+  return message;
+}
 
 function printHelp(): void {
   console.log("Available commands:");
@@ -62,6 +87,20 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
     prompt: "> ",
   });
 
+  let streaming = false;
+
+  rl.on("SIGINT", () => {
+    if (streaming) {
+      streaming = false;
+      console.log("\n[interrupted]");
+      rl.prompt();
+    } else {
+      console.log("\nGoodbye!");
+      rl.close();
+      process.exit(0);
+    }
+  });
+
   rl.prompt();
 
   for await (const line of rl) {
@@ -116,16 +155,20 @@ export async function main(args: string[] = process.argv.slice(2)): Promise<void
     }
 
     try {
+      streaming = true;
       process.stdout.write("Gemini: ");
       for await (const chunk of client.streamMessage(input)) {
+        if (!streaming) break;
         if (!chunk.done) {
           process.stdout.write(chunk.text);
         }
       }
-      console.log("\n");
+      if (streaming) console.log("\n");
+      streaming = false;
     } catch (err) {
+      streaming = false;
       const message = err instanceof Error ? err.message : String(err);
-      console.error(`\nError: ${message}\n`);
+      console.error(`\nError: ${classifyError(message)}\n`);
     }
 
     rl.prompt();
