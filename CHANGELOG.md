@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.1] - 2026-05-14
+
+### Added
+- Token usage tracking: `GeminiClient.getUsage()` and `resetUsage()` for session-level accumulation
+- `/usage` REPL command showing prompt, completion, and total tokens
+- Per-call `usage` field in `ChatResponse` from `sendMessage`
+- Token accumulation from both `sendMessage` and `streamMessage` via `usageMetadata`
+- 9 new tests for token usage (101 total)
+
 ## [0.2.0] - 2026-05-14
 
 ### Added
