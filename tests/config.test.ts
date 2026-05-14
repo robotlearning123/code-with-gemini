@@ -95,3 +95,93 @@ describe("loadConfig validation", () => {
     ).toThrow(ConfigError);
   });
 });
+
+describe("generation config", () => {
+  it("parses GEMINI_TEMPERATURE", () => {
+    const config = loadConfig({ GEMINI_API_KEY: "key", GEMINI_TEMPERATURE: "0.7" });
+    expect(config.generationConfig).toBeDefined();
+    expect(config.generationConfig!.temperature).toBe(0.7);
+  });
+
+  it("parses GEMINI_TOP_P", () => {
+    const config = loadConfig({ GEMINI_API_KEY: "key", GEMINI_TOP_P: "0.9" });
+    expect(config.generationConfig!.topP).toBe(0.9);
+  });
+
+  it("parses GEMINI_TOP_K", () => {
+    const config = loadConfig({ GEMINI_API_KEY: "key", GEMINI_TOP_K: "40" });
+    expect(config.generationConfig!.topK).toBe(40);
+  });
+
+  it("parses GEMINI_MAX_OUTPUT_TOKENS", () => {
+    const config = loadConfig({ GEMINI_API_KEY: "key", GEMINI_MAX_OUTPUT_TOKENS: "1024" });
+    expect(config.generationConfig!.maxOutputTokens).toBe(1024);
+  });
+
+  it("parses multiple generation config env vars together", () => {
+    const config = loadConfig({
+      GEMINI_API_KEY: "key",
+      GEMINI_TEMPERATURE: "1.2",
+      GEMINI_TOP_P: "0.5",
+      GEMINI_TOP_K: "20",
+    });
+    expect(config.generationConfig).toEqual({
+      temperature: 1.2,
+      topP: 0.5,
+      topK: 20,
+    });
+  });
+
+  it("omits generationConfig when no env vars are set", () => {
+    const config = loadConfig({ GEMINI_API_KEY: "key" });
+    expect(config.generationConfig).toBeUndefined();
+  });
+
+  it("ignores non-numeric GEMINI_TEMPERATURE", () => {
+    const config = loadConfig({ GEMINI_API_KEY: "key", GEMINI_TEMPERATURE: "hot" });
+    expect(config.generationConfig).toBeUndefined();
+  });
+
+  it("throws for temperature below 0", () => {
+    expect(() =>
+      loadConfig({ GEMINI_API_KEY: "key", GEMINI_TEMPERATURE: "-0.1" })
+    ).toThrow("temperature must be between 0 and 2");
+  });
+
+  it("throws for temperature above 2", () => {
+    expect(() =>
+      loadConfig({ GEMINI_API_KEY: "key", GEMINI_TEMPERATURE: "2.5" })
+    ).toThrow("temperature must be between 0 and 2");
+  });
+
+  it("accepts temperature at boundaries (0 and 2)", () => {
+    const c0 = loadConfig({ GEMINI_API_KEY: "key", GEMINI_TEMPERATURE: "0" });
+    expect(c0.generationConfig!.temperature).toBe(0);
+    const c2 = loadConfig({ GEMINI_API_KEY: "key", GEMINI_TEMPERATURE: "2" });
+    expect(c2.generationConfig!.temperature).toBe(2);
+  });
+
+  it("throws for topP below 0", () => {
+    expect(() =>
+      loadConfig({ GEMINI_API_KEY: "key", GEMINI_TOP_P: "-0.1" })
+    ).toThrow("topP must be between 0 and 1");
+  });
+
+  it("throws for topP above 1", () => {
+    expect(() =>
+      loadConfig({ GEMINI_API_KEY: "key", GEMINI_TOP_P: "1.5" })
+    ).toThrow("topP must be between 0 and 1");
+  });
+
+  it("throws for topK below 1", () => {
+    expect(() =>
+      loadConfig({ GEMINI_API_KEY: "key", GEMINI_TOP_K: "0" })
+    ).toThrow("topK must be >= 1");
+  });
+
+  it("throws for maxOutputTokens below 1", () => {
+    expect(() =>
+      loadConfig({ GEMINI_API_KEY: "key", GEMINI_MAX_OUTPUT_TOKENS: "0" })
+    ).toThrow("maxOutputTokens must be >= 1");
+  });
+});
