@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.5.0] - 2026-05-14
+
+### Added
+- Colorized terminal output: startup banner (cyan), Gemini prefix (green), errors (red), goodbye (yellow)
+- `src/style.ts` — zero-dependency ANSI color module with auto-disable for non-TTY output
+- 3 new tests (126 total)
+
 ## [0.4.0] - 2026-05-14
 
 ### Added
